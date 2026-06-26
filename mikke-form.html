@@ -746,6 +746,7 @@
         <span style="background:var(--blue-mid);color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">②</span>
         <span>公式LINEに<strong>「入力しました」</strong>とひと言ご連絡ください</span>
       </div>
+      <a href="https://lin.ee/7E1MoZF" target="_blank" style="display:block;margin:4px 0 8px 32px;background:#06C755;color:white;text-align:center;padding:10px 16px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none;">📲 公式LINEを開く</a>
       <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;">
         <span style="background:var(--blue-mid);color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">③</span>
         <span>塾より見学日をLINEにてお知らせします</span>
@@ -914,9 +915,9 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
     `.trim();
 
     try {
-      // 複数宛先に順番に送信
-      const sends = OWNER_EMAILS.map(ownerEmail =>
-        fetch('https://api.web3forms.com/submit', {
+      // 運営への通知（複数宛先）
+      for (const ownerEmail of OWNER_EMAILS) {
+        await fetch('https://api.web3forms.com/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -927,11 +928,11 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
             replyto: email,
             from_name: '個性別塾みっけ',
           })
-        })
-      );
+        });
+      }
 
       // 保護者への確認メール
-      const confirmSend = fetch('https://api.web3forms.com/submit', {
+      await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -943,20 +944,13 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
         })
       });
 
-      const responses = await Promise.all([...sends, confirmSend]);
-      const jsons = await Promise.all(responses.map(r => r.json()));
-      const allOk = jsons.every(j => j.success === true);
+      // 完了画面を表示
+      document.querySelectorAll('form, .hero, .schedule-note, .flow-section').forEach(el => {
+        el.style.display = 'none';
+      });
+      document.getElementById('success').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      if (allOk) {
-        form.style.display = 'none';
-        document.querySelector('.hero').style.display = 'none';
-        document.querySelector('.schedule-note').style.display = 'none';
-        document.querySelector('.flow-section').style.display = 'none';
-        document.getElementById('success').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        throw new Error('送信失敗');
-      }
     } catch {
       submitBtn.disabled = false;
       submitBtn.textContent = '見学を申し込む';
