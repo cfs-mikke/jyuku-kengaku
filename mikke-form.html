@@ -915,25 +915,22 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
     `.trim();
 
     try {
-      // 運営への通知（cc機能でひろき先生にも送る）
+      const formData = new FormData();
+      formData.append('access_key', ACCESS_KEY);
+      formData.append('subject', `【見学申し込み】${name}さん（${grade}）`);
+      formData.append('message', body);
+      formData.append('replyto', email);
+      formData.append('from_name', '個性別塾みっけ');
+
       const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          access_key: ACCESS_KEY,
-          subject: `【見学申し込み】${name}さん（${grade}）`,
-          message: body,
-          replyto: email,
-          from_name: '個性別塾みっけ',
-          // 保護者への確認メール
-          cc: email,
-        })
+        body: formData
       });
 
       const json = await res.json();
       console.log('Web3Forms response:', json);
 
-      // 完了画面を表示（送信結果に関わらず）
+      // 完了画面を表示
       document.querySelectorAll('form, .hero, .schedule-note, .flow-section').forEach(el => {
         el.style.display = 'none';
       });
