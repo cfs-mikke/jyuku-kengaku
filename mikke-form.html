@@ -809,6 +809,8 @@
     const note = document.getElementById('note').value.trim();
     const date2 = document.getElementById('date2').value;
     const checked = document.getElementById('confirm-check').checked;
+    const meal = document.getElementById('meal').value;
+    const mealCount = document.getElementById('meal-count').value;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -820,7 +822,6 @@
 
     // 食事希望の場合は人数必須
     if (meal === '希望する') {
-      const mealCount = document.getElementById('meal-count').value;
       valid = validateField('meal-count', mealCount !== '') && valid;
     }
 
@@ -839,9 +840,6 @@
 
     submitBtn.disabled = true;
     submitBtn.textContent = '送信中...';
-
-    const meal = document.getElementById('meal').value;
-    const mealCount = document.getElementById('meal-count').value;
 
     const body = `
 新しい見学申し込みが届きました🎉
