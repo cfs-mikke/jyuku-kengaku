@@ -943,13 +943,15 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
         })
       });
 
-      const results = await Promise.all([...sends, confirmSend]);
-      const allOk = results.every(r => r.ok);
+      const responses = await Promise.all([...sends, confirmSend]);
+      const jsons = await Promise.all(responses.map(r => r.json()));
+      const allOk = jsons.every(j => j.success === true);
 
       if (allOk) {
         form.style.display = 'none';
         document.querySelector('.hero').style.display = 'none';
         document.querySelector('.schedule-note').style.display = 'none';
+        document.querySelector('.flow-section').style.display = 'none';
         document.getElementById('success').style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
