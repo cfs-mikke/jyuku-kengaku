@@ -902,31 +902,48 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
 
     try {
       // 運営への通知
-      const fd1 = new FormData();
-      fd1.append('access_key', ACCESS_KEY);
-      fd1.append('subject', `【見学申し込み】${name}さん（${grade}）`);
-      fd1.append('message', ownerMsg);
-      fd1.append('replyto', email);
-      fd1.append('from_name', '個性別塾みっけ');
-      await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd1 });
+      const sends = [OWNER_EMAIL].map(ownerEmail =>
+        fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_key: ACCESS_KEY,
+            to: ownerEmail,
+            subject: `【見学申し込み】${name}さん（${grade}）`,
+            message: ownerMsg,
+            replyto: email,
+            from_name: '個性別塾みっけ',
+          })
+        })
+      );
 
       // 保護者への確認メール
-      const fd2 = new FormData();
-      fd2.append('access_key', ACCESS_KEY);
-      fd2.append('to', email);
-      fd2.append('subject', '【個性別塾みっけ】見学お申し込みを受け付けました');
-      fd2.append('message', parentMsg);
-      fd2.append('from_name', '個性別塾みっけ');
-      await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd2 });
+      const confirmSend = fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_key: ACCESS_KEY,
+          to: email,
+          subject: '【個性別塾みっけ】見学お申し込みを受け付けました',
+          message: parentMsg,
+          from_name: '個性別塾みっけ',
+        })
+      });
 
-      // 完了画面表示
-      document.getElementById('form').style.display = 'none';
-      document.getElementById('success').style.display = 'block';
-      document.querySelector('.hero').style.display = 'none';
-      document.querySelector('.schedule-note').style.display = 'none';
-      document.querySelector('.flow-section').style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const results = await Promise.all([...sends, confirmSend]);
+      const jsons = await Promise.all(results.map(r => r.json()));
+      const allOk = jsons.some(j => j.success === true);
 
+      if (allOk) {
+        document.getElementById('form').style.display = 'none';
+        document.querySelector('.hero').style.display = 'none';
+        document.querySelector('.schedule-note').style.display = 'none';
+        document.querySelector('.flow-section').style.display = 'none';
+        document.getElementById('success').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        throw new Error('送信失敗');
+      }
     } catch(err) {
       console.error('Error:', err);
       submitBtn.disabled = false;
