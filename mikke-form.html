@@ -126,11 +126,6 @@
     line-height: 1.9;
   }
 
-  .flow-tab.active {
-    background: var(--blue-mid);
-    color: white;
-    border-color: var(--blue-mid);
-  }
   .schedule-note {
     background: white;
     border: 1.5px solid var(--border);
@@ -389,27 +384,6 @@
     display: block;
   }
 
-  .flow-tab.active {
-    background: var(--blue-pale);
-    border-color: var(--blue-soft);
-    color: var(--blue-dark);
-  }
-
-  .flow-content.active {
-    display: block;
-  }
-
-  .flow-step:last-child {
-    margin-bottom: 0;
-  }
-
-  .flow-text .time {
-    font-size: 11px;
-    color: var(--blue-soft);
-    font-weight: 700;
-    display: block;
-    margin-bottom: 1px;
-  }
   /* 見学の流れ */
   .flow-section {
     background: white;
@@ -828,9 +802,9 @@
       return;
     }
 
-    const submitBtn = document.getElementById('submit-btn');
-    submitBtn.disabled = true;
-    submitBtn.textContent = '送信中...';
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = '送信中...';
 
     const ownerMsg = `新しい見学申し込みが届きました🎉
 
@@ -931,8 +905,7 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
       });
 
       const results = await Promise.all([...sends, confirmSend]);
-      const jsons = await Promise.all(results.map(r => r.json()));
-      const allOk = jsons.some(j => j.success === true);
+      const allOk = results.every(r => r.ok);
 
       if (allOk) {
         document.getElementById('form').style.display = 'none';
@@ -946,8 +919,8 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
       }
     } catch(err) {
       console.error('Error:', err);
-      submitBtn.disabled = false;
-      submitBtn.textContent = '見学を申し込む';
+      btn.disabled = false;
+      btn.textContent = '見学を申し込む';
       alert('送信に失敗しました。時間をおいて再度お試しください。');
     }
   });
