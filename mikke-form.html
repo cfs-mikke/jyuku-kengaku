@@ -931,10 +931,15 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
       console.log('Web3Forms response:', json);
 
       // 完了画面を表示
-      document.querySelectorAll('form, .hero, .schedule-note, .flow-section').forEach(el => {
-        el.style.display = 'none';
-      });
-      document.getElementById('success').style.display = 'block';
+      document.getElementById('form').style.display = 'none';
+      document.querySelector('.hero').style.display = 'none';
+      document.querySelector('.schedule-note').style.display = 'none';
+      const flowSection = document.querySelector('.flow-section');
+      if (flowSection) flowSection.style.display = 'none';
+      const successEl = document.getElementById('success');
+      successEl.style.display = 'block';
+      successEl.style.visibility = 'visible';
+      successEl.style.opacity = '1';
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch(err) {
