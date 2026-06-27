@@ -760,7 +760,10 @@
 </div>
 
 <script>
+  const ACCESS_KEY = 'd9d68497-23aa-49f9-a2ae-24f73f257e42';
+  const OWNER_EMAIL = 'cfs.mikke@gmail.com';
 
+  // タブ切り替え
   function switchTab(tab, btn) {
     document.querySelectorAll('.flow-content').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
@@ -768,25 +771,12 @@
     btn.classList.add('active');
   }
 
-
+  // 食事希望で人数欄を表示
   document.getElementById('meal').addEventListener('change', function() {
-    const mealCountField = document.getElementById('field-meal-count');
-    mealCountField.style.display = this.value === '希望する' ? 'block' : 'none';
+    document.getElementById('field-meal-count').style.display = this.value === '希望する' ? 'block' : 'none';
   });
 
-  function switchTab(tab, btn) {
-    document.getElementById('tab-elementary').style.display = 'none';
-    document.getElementById('tab-junior').style.display = 'none';
-    document.getElementById('tab-' + tab).style.display = 'block';
-    document.querySelectorAll('.flow-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-  const ACCESS_KEY = 'd9d68497-23aa-49f9-a2ae-24f73f257e42';
-  const OWNER_EMAILS = ['cfs.mikke@gmail.com', 'HIROKI_EMAIL@example.com']; // ← ひろき先生のメアドを後で入れる
-
-  const form = document.getElementById('form');
-  const submitBtn = document.getElementById('submit-btn');
-
+  // バリデーション
   function validateField(id, condition) {
     const field = document.getElementById('field-' + id);
     if (!field) return true;
@@ -799,19 +789,20 @@
     }
   }
 
-  form.addEventListener('submit', async (e) => {
+  // 送信処理
+  document.getElementById('form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const grade = document.getElementById('grade').value;
-    const date1 = document.getElementById('date1').value;
-    const concern = document.getElementById('concern').value.trim();
-    const note = document.getElementById('note').value.trim();
-    const date2 = document.getElementById('date2').value;
-    const checked = document.getElementById('confirm-check').checked;
-    const meal = document.getElementById('meal').value;
+    const name     = document.getElementById('name').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const grade    = document.getElementById('grade').value;
+    const date1    = document.getElementById('date1').value;
+    const date2    = document.getElementById('date2').value;
+    const meal     = document.getElementById('meal').value;
     const mealCount = document.getElementById('meal-count').value;
+    const concern  = document.getElementById('concern').value.trim();
+    const note     = document.getElementById('note').value.trim();
+    const checked  = document.getElementById('confirm-check').checked;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -820,8 +811,6 @@
     valid = validateField('email', emailRegex.test(email)) && valid;
     valid = validateField('grade', grade !== '') && valid;
     valid = validateField('date1', date1 !== '') && valid;
-
-    // 食事希望の場合は人数必須
     if (meal === '希望する') {
       valid = validateField('meal-count', mealCount !== '') && valid;
     }
@@ -839,11 +828,11 @@
       return;
     }
 
+    const submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = true;
     submitBtn.textContent = '送信中...';
 
-    const body = `
-新しい見学申し込みが届きました🎉
+    const ownerMsg = `新しい見学申し込みが届きました🎉
 
 おめでとうございます！また一歩、みっけの輪が広がりますね。
 当日も素敵な出会いになりますように、がんばってください☺️
@@ -854,16 +843,14 @@
 ■ お子さんの学年：${grade}
 ■ 第1希望日：${date1}
 ■ 第2希望日：${date2 || 'なし'}
-■ お食事希望：${meal || 'なし'}${meal === '希望する' ? '　' + (mealCount || '人数未選択') + '名' : ''}
+■ お食事希望：${meal || 'なし'}${meal === '希望する' ? '　' + (mealCount || '未選択') + '名' : ''}
 ■ お困りのこと：${concern || '記入なし'}
 ■ 備考：${note || 'なし'}
 ━━━━━━━━━━━━━━━━
 
-確認したらLINEで見学日を案内してあげてください☺️
-    `.trim();
+確認したらLINEで見学日を案内してあげてください☺️`;
 
-    const confirmationBody = `
-${name} 様
+    const parentMsg = `${name} 様
 
 個性別塾みっけの見学をお申し込みいただきありがとうございます🌿
 
@@ -872,7 +859,7 @@ ${name} 様
 お子さんの学年：${grade}
 第1希望日：${date1}
 第2希望日：${date2 || 'なし'}
-お食事希望：${meal || 'なし'}${meal === '希望する' ? '（' + (mealCount || '人数未選択') + '）' : ''}
+お食事希望：${meal || 'なし'}${meal === '希望する' ? '（' + (mealCount || '未選択') + '）' : ''}
 ━━━━━━━━━━━━━━━━
 
 お申し込みを受け付けましたが、見学日の確定は
@@ -911,35 +898,36 @@ https://maps.app.goo.gl/DLgA6UqqZftJvPLw5
 
 お会いできるのを楽しみにしています。
 
-個性別塾みっけ
-    `.trim();
+個性別塾みっけ`;
 
     try {
-      const formData = new FormData();
-      formData.append('access_key', ACCESS_KEY);
-      formData.append('subject', `【見学申し込み】${name}さん（${grade}）`);
-      formData.append('message', body);
-      formData.append('replyto', email);
-      formData.append('from_name', '個性別塾みっけ');
+      // 運営への通知
+      const fd1 = new FormData();
+      fd1.append('access_key', ACCESS_KEY);
+      fd1.append('subject', `【見学申し込み】${name}さん（${grade}）`);
+      fd1.append('message', ownerMsg);
+      fd1.append('replyto', email);
+      fd1.append('from_name', '個性別塾みっけ');
+      await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd1 });
 
-      const res = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: formData
+      // 保護者への確認メール
+      const fd2 = new FormData();
+      fd2.append('access_key', ACCESS_KEY);
+      fd2.append('to', email);
+      fd2.append('subject', '【個性別塾みっけ】見学お申し込みを受け付けました');
+      fd2.append('message', parentMsg);
+      fd2.append('from_name', '個性別塾みっけ');
+      await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd2 });
+
+      // 完了画面表示
+      ['form', 'success'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = id === 'success' ? 'block' : 'none';
       });
-
-      const json = await res.json();
-      console.log('Web3Forms response:', json);
-
-      // 完了画面を表示
-      document.getElementById('form').style.display = 'none';
-      document.querySelector('.hero').style.display = 'none';
-      document.querySelector('.schedule-note').style.display = 'none';
-      const flowSection = document.querySelector('.flow-section');
-      if (flowSection) flowSection.style.display = 'none';
-      const successEl = document.getElementById('success');
-      successEl.style.display = 'block';
-      successEl.style.visibility = 'visible';
-      successEl.style.opacity = '1';
+      ['.hero', '.schedule-note', '.flow-section'].forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) el.style.display = 'none';
+      });
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch(err) {
